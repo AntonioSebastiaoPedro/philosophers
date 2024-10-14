@@ -6,7 +6,7 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 03:47:58 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/14 03:49:06 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/14 17:02:20 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,25 @@ long	get_current_time(void)
 	return ((time.tv_sec * 1000) + (time.tv_usec / 1000));
 }
 
+int	all_full(t_data *data)
+{
+	int	i;
+
+	i = 0;
+	while (i < data->number_of_philosophers)
+	{
+		if (data->philosophers[i].meals_eaten == data->meals_required)
+			data->all_meals--;
+		i++;
+	}
+	if (data->all_meals == 0)
+	{
+		data->all_alive = 0;
+		return (0);
+	}
+	return (0);
+}
+
 void	sleep_for(int time_in_ms)
 {
 	usleep(time_in_ms * 1000);
@@ -30,7 +49,7 @@ void	print_status(t_philosopher *philo, const char *status)
 	pthread_mutex_lock(&philo->data->write_mutex);
 	if (philo->data->all_alive)
 	{
-		printf("[%ld] %d %s\n", get_current_time() - philo->data->start_time,
+		printf("%ld %d %s\n", get_current_time() - philo->data->start_time,
 			philo->id, status);
 	}
 	pthread_mutex_unlock(&philo->data->write_mutex);
@@ -43,19 +62,36 @@ void	*philosopher_routine(void *arg)
 	philo = (t_philosopher *)arg;
 	while (philo->data->all_alive)
 	{
-		print_status(philo, "is thinking");
-		pthread_mutex_lock(philo->left_fork);
-		print_status(philo, "has taken a fork");
-		pthread_mutex_lock(philo->right_fork);
-		print_status(philo, "has taken a fork");
+		if (philo->data->number_of_philosophers == 1)
+		{
+			pthread_mutex_lock(philo->left_fork);
+			print_status(philo, "has taken a fork");
+		}
+		if (philo->id % 2 == 0)
+		{
+			pthread_mutex_lock(philo->left_fork);
+			print_status(philo, "has taken a fork");
+			pthread_mutex_lock(philo->right_fork);
+			print_status(philo, "has taken a fork");
+		}
+		else
+		{
+			pthread_mutex_lock(philo->right_fork);
+			print_status(philo, "has taken a fork");
+			pthread_mutex_lock(philo->left_fork);
+			print_status(philo, "has taken a fork");
+		}
 		print_status(philo, "is eating");
 		philo->last_meal = get_current_time();
 		philo->meals_eaten++;
 		sleep_for(philo->data->time_to_eat);
 		pthread_mutex_unlock(philo->right_fork);
 		pthread_mutex_unlock(philo->left_fork);
+		if (philo->meals_eaten == philo->data->meals_required)
+			break;
 		print_status(philo, "is sleeping");
 		sleep_for(philo->data->time_to_sleep);
+		print_status(philo, "is thinking");
 	}
 	return (NULL);
 }
@@ -103,15 +139,13 @@ int	simulation(t_data *data)
 			return (1);
 		i++;
 	}
-	sleep_for(10000);
-	data->all_alive = 0;
 	i = 0;
 	while (i < data->number_of_philosophers)
 		pthread_join(data->philosophers[i++].thread, NULL);
 	return (0);
 }
 
-void	clean_up(t_data *data)
+void	free_mutex_philos(t_data *data)
 {
 	int	i;
 
@@ -128,14 +162,13 @@ void	clean_up(t_data *data)
 
 int	main(int argc, char **argv)
 {
-	t_data	data;
+	t_data data;
 
 	if (argc < 5 || argc > 6)
 	{
 		printf("Usage: \
-			%s number_of_philosophers time_to_die time_to_eat \
-			time_to_sleep [number_of_times_each_philosopher_must_eat]\n",
-			argv[0]);
+			./philo number_number_of_philosophers time_to_die time_to_eat time_to_sleep \
+			[number_of_times_each_philosopher_must_eat]\n");
 		return (1);
 	}
 	data.number_of_philosophers = atoi(argv[1]);
@@ -144,9 +177,12 @@ int	main(int argc, char **argv)
 	data.time_to_sleep = atoi(argv[4]);
 	data.meals_required = -1;
 	if (argc == 6)
+	{
 		data.meals_required = atoi(argv[5]);
+		data.all_meals = data.meals_required;
+	}
 	init_philos(&data);
 	simulation(&data);
-	clean_up(&data);
+	free_mutex_philos(&data);
 	return (0);
 }

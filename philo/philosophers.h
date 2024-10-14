@@ -6,7 +6,7 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/11 17:46:22 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/14 03:29:35 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/14 04:10:14 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ typedef struct s_data
 	int				time_to_eat;
 	int				time_to_sleep;
 	int				meals_required;
+	int				all_meals;
 	int				all_alive;
 	pthread_mutex_t	*forks;
 	pthread_mutex_t	write_mutex;
