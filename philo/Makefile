@@ -6,7 +6,7 @@
 #    By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/09/04 14:00:18 by ansebast          #+#    #+#              #
-#    Updated: 2024/10/14 00:00:54 by ansebast         ###   ########.fr        #
+#    Updated: 2024/10/14 03:50:19 by ansebast         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,7 +33,7 @@ clean:
 	rm -f $(OBJS)
 
 fclean: clean
-	@echo "$(RED)Removing the server and client executable ...$(RESET)"
+	@echo "$(RED)Removing $(NAME) executable ...$(RESET)"
 	rm -f $(NAME)
 
 re: fclean all
