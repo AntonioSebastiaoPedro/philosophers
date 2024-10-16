@@ -6,13 +6,13 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 03:47:58 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/15 08:54:45 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/16 10:51:14 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philosophers.h"
 
-int	all_full(t_data *data)
+void	all_full(t_data *data)
 {
 	int	i;
 
@@ -20,17 +20,13 @@ int	all_full(t_data *data)
 	while (i < data->number_of_philosophers)
 	{
 		if (data->philosophers[i].meals_eaten == data->meals_required)
+		{
 			data->all_meals--;
+			data->philosophers[i].just_full = 1;
+		}
 		i++;
 	}
-	if (data->all_meals == 0)
-	{
-		data->all_alive = 0;
-		return (0);
-	}
-	return (0);
 }
-
 
 int	init_philos(t_data *data)
 {
@@ -55,6 +51,7 @@ int	init_philos(t_data *data)
 			% data->number_of_philosophers];
 		data->philosophers[i].last_meal = get_current_time();
 		data->philosophers[i].meals_eaten = 0;
+		data->philosophers[i].just_full = 0;
 		data->philosophers[i].data = data;
 		i++;
 	}
@@ -67,11 +64,6 @@ long	get_current_time(void)
 
 	gettimeofday(&time, NULL);
 	return ((time.tv_sec * 1000) + (time.tv_usec / 1000));
-}
-
-void	sleep_for(int time_in_ms)
-{
-	usleep(time_in_ms * 1000);
 }
 
 void	print_status(t_philosopher *philo, const char *status)
@@ -90,8 +82,16 @@ void	*philosopher_routine(void *arg)
 	t_philosopher	*philo;
 
 	philo = (t_philosopher *)arg;
-	while (philo->data->all_alive)
+	while (philo->data->all_alive && philo->data->all_meals)
 	{
+		// if (philo->data->number_of_philosophers == 1)
+		// {
+		// 	pthread_mutex_lock(philo->left_fork);
+		// 	print_status(philo, "has taken a fork");
+		// 	print_status(philo, "died");
+		// 	pthread_mutex_destroy(philo->left_fork);
+		// 	philo->data->all_alive = 0;
+		// }
 		if (philo->id % 2 == 0)
 		{
 			pthread_mutex_lock(philo->left_fork);
@@ -106,62 +106,88 @@ void	*philosopher_routine(void *arg)
 			pthread_mutex_lock(philo->left_fork);
 			print_status(philo, "has taken a fork");
 		}
-
 		philo->last_meal = get_current_time();
 		print_status(philo, "is eating");
 		philo->meals_eaten++;
-		if (philo->meals_eaten == philo->data->meals_required)
-			philo->data->all_alive = 0;
-		sleep_for(philo->data->time_to_eat);
+		usleep(philo->data->time_to_eat * 1000);
 		pthread_mutex_unlock(philo->right_fork);
 		pthread_mutex_unlock(philo->left_fork);
-
+		// if (philo->meals_eaten == philo->data->meals_required)
+		// {
+		// 	philo->just_full = 1;
+		// 	break ;
+		// }
 		print_status(philo, "is sleeping");
-		sleep_for(philo->data->time_to_sleep);
+		usleep(philo->data->time_to_sleep * 1000);
 		print_status(philo, "is thinking");
 	}
 	return (NULL);
 }
 
-void	*monitor_routine(void *arg)
+void	*monitor_die(void *arg)
 {
 	t_data	*data;
 	int		i;
+	long	time_since_last_meal;
 
 	data = (t_data *)arg;
-	while (data->all_alive)
+	while (data->all_alive && data->all_meals)
 	{
 		i = 0;
 		while (i < data->number_of_philosophers)
 		{
+		all_full(data);
 			pthread_mutex_lock(&data->write_mutex);
-			long time_since_last_meal = get_current_time() - data->philosophers[i].last_meal;
-
-			if (time_since_last_meal >= data->time_to_die + 5)
+			if (data->philosophers[i].just_full == 0)
 			{
-				data->all_alive = 0;
-				printf("%ld %d died\n", get_current_time() - data->start_time, data->philosophers[i].id);
+				time_since_last_meal = get_current_time()
+					- data->philosophers[i].last_meal;
+				if ((time_since_last_meal >= data->time_to_die + 5))
+				{
+					data->all_alive = 0;
+					printf("%ld %d died\n", get_current_time()
+						- data->start_time, data->philosophers[i].id);
+				}
 			}
 			pthread_mutex_unlock(&data->write_mutex);
-			if (!data->all_alive)
-				break;
+			if (!data->all_alive || !data->all_meals)
+				break ;
 			i++;
 		}
 	}
 	return (NULL);
 }
 
+// void	*monitor_meals(void *arg)
+// {
+// 	t_data	*data;
+// 	int		i;
+
+// 	data = (t_data *)arg;
+// 	while (data->all_meals)
+// 	{
+// 		i = 0;
+// 		while (i < data->number_of_philosophers)
+// 		{
+// 			if ( data->philosophers[i].meals_eaten >= data->meals_required)
+// 				data->all_meals -= 1;
+// 			if (!data->all_meals)
+// 				break ;
+// 			i++;
+// 		}
+// 	}
+// 	return (NULL);
+// }
+
 int	simulation(t_data *data)
 {
-	int	i;
-	pthread_t	monitor;
+	int			i;
+	pthread_t	monitor_for_die;
 
 	data->start_time = get_current_time();
 	data->all_alive = 1;
-
-	if (pthread_create(&monitor, NULL, monitor_routine, (void *)data) != 0)
+	if (pthread_create(&monitor_for_die, NULL, monitor_die, (void *)data) != 0)
 		return (1);
-
 	i = 0;
 	while (i < data->number_of_philosophers)
 	{
@@ -170,11 +196,10 @@ int	simulation(t_data *data)
 			return (1);
 		i++;
 	}
-
 	i = 0;
 	while (i < data->number_of_philosophers)
 		pthread_join(data->philosophers[i++].thread, NULL);
-	pthread_join(monitor, NULL);
+	pthread_join(monitor_for_die, NULL);
 	return (0);
 }
 
@@ -195,7 +220,7 @@ void	free_mutex_philos(t_data *data)
 
 int	main(int argc, char **argv)
 {
-	t_data data;
+	t_data	data;
 
 	if (argc < 5 || argc > 6)
 	{
