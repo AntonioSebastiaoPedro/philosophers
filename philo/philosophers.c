@@ -6,7 +6,7 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 03:47:58 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/16 10:51:14 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/17 20:18:36 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,16 +82,8 @@ void	*philosopher_routine(void *arg)
 	t_philosopher	*philo;
 
 	philo = (t_philosopher *)arg;
-	while (philo->data->all_alive && philo->data->all_meals)
+	while (philo->data->all_alive)
 	{
-		// if (philo->data->number_of_philosophers == 1)
-		// {
-		// 	pthread_mutex_lock(philo->left_fork);
-		// 	print_status(philo, "has taken a fork");
-		// 	print_status(philo, "died");
-		// 	pthread_mutex_destroy(philo->left_fork);
-		// 	philo->data->all_alive = 0;
-		// }
 		if (philo->id % 2 == 0)
 		{
 			pthread_mutex_lock(philo->left_fork);
@@ -112,11 +104,11 @@ void	*philosopher_routine(void *arg)
 		usleep(philo->data->time_to_eat * 1000);
 		pthread_mutex_unlock(philo->right_fork);
 		pthread_mutex_unlock(philo->left_fork);
-		// if (philo->meals_eaten == philo->data->meals_required)
-		// {
-		// 	philo->just_full = 1;
-		// 	break ;
-		// }
+		if (philo->meals_eaten == philo->data->meals_required)
+		{
+			philo->just_full = 1;
+			break;
+		}
 		print_status(philo, "is sleeping");
 		usleep(philo->data->time_to_sleep * 1000);
 		print_status(philo, "is thinking");
@@ -136,9 +128,9 @@ void	*monitor_die(void *arg)
 		i = 0;
 		while (i < data->number_of_philosophers)
 		{
-		all_full(data);
+			all_full(data);
 			pthread_mutex_lock(&data->write_mutex);
-			if (data->philosophers[i].just_full == 0)
+			if (!data->philosophers[i].just_full)
 			{
 				time_since_last_meal = get_current_time()
 					- data->philosophers[i].last_meal;
@@ -157,27 +149,6 @@ void	*monitor_die(void *arg)
 	}
 	return (NULL);
 }
-
-// void	*monitor_meals(void *arg)
-// {
-// 	t_data	*data;
-// 	int		i;
-
-// 	data = (t_data *)arg;
-// 	while (data->all_meals)
-// 	{
-// 		i = 0;
-// 		while (i < data->number_of_philosophers)
-// 		{
-// 			if ( data->philosophers[i].meals_eaten >= data->meals_required)
-// 				data->all_meals -= 1;
-// 			if (!data->all_meals)
-// 				break ;
-// 			i++;
-// 		}
-// 	}
-// 	return (NULL);
-// }
 
 int	simulation(t_data *data)
 {
