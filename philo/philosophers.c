@@ -6,7 +6,7 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 03:47:58 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/17 20:18:36 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/17 20:28:17 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,7 +170,8 @@ int	simulation(t_data *data)
 	i = 0;
 	while (i < data->number_of_philosophers)
 		pthread_join(data->philosophers[i++].thread, NULL);
-	pthread_join(monitor_for_die, NULL);
+	// pthread_join(monitor_for_die, NULL);
+	pthread_detach(monitor_for_die);
 	return (0);
 }
 
