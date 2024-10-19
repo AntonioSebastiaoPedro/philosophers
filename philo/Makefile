@@ -6,7 +6,7 @@
 #    By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/09/04 14:00:18 by ansebast          #+#    #+#              #
-#    Updated: 2024/10/14 03:50:19 by ansebast         ###   ########.fr        #
+#    Updated: 2024/10/19 18:35:53 by ansebast         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,7 +25,7 @@ all: $(NAME)
 
 $(NAME): $(OBJS)
 	@echo "$(YELLOW)Linking the objects...$(RESET)"
-	cc $(CFLAGS) $(OBJS) -o $(NAME) 
+	cc -fsanitize=thread $(CFLAGS) $(OBJS) -o $(NAME) 
 	@echo "$(GREEN)Executable $(NAME) created successfully!$(RESET)"
 
 clean:
