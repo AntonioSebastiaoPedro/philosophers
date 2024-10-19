@@ -6,7 +6,7 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/11 17:46:22 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/19 12:11:49 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/19 14:15:18 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ typedef struct s_philosopher
 	long			last_meal;
 	int				meals_eaten;
 	int				just_full;
+	int				loop_routine;
 	struct s_data	*data;
 }					t_philosopher;
 
@@ -42,7 +43,7 @@ typedef struct s_data
 	int				all_alive;
 	pthread_mutex_t	*forks;
 	pthread_mutex_t	write_mutex;
-	pthread_mutex_t alive_mutex;
+	pthread_mutex_t	alive_mutex;
 	t_philosopher	*philosophers;
 	long			start_time;
 }					t_data;

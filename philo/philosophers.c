@@ -6,7 +6,7 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 03:47:58 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/19 14:00:54 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/19 14:18:34 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ void	fill_philos(t_data *data)
 		data->philosophers[i].last_meal = get_current_time();
 		data->philosophers[i].meals_eaten = 0;
 		data->philosophers[i].just_full = 0;
+		data->philosophers[i].loop_routine = 1;
 		data->philosophers[i].data = data;
 		i++;
 	}
@@ -86,12 +87,38 @@ void	print_status(t_philosopher *philo, const char *status)
 	pthread_mutex_unlock(&philo->data->write_mutex);
 }
 
+void	take_forks(t_philosopher *philo)
+{
+	if (philo->id % 2 == 0)
+	{
+		pthread_mutex_lock(philo->left_fork);
+		print_status(philo, "has taken a fork");
+		pthread_mutex_lock(philo->right_fork);
+		print_status(philo, "has taken a fork");
+	}
+	else
+	{
+		pthread_mutex_lock(philo->right_fork);
+		print_status(philo, "has taken a fork");
+		if (philo->data->number_of_philosophers == 1)
+			philo->loop_routine = 0;
+		pthread_mutex_lock(philo->left_fork);
+		print_status(philo, "has taken a fork");
+	}
+}
+
+void	unlock_forks(t_philosopher *philo)
+{
+	pthread_mutex_unlock(philo->right_fork);
+	pthread_mutex_unlock(philo->left_fork);
+}
+
 void	*philosopher_routine(void *arg)
 {
 	t_philosopher	*philo;
 
 	philo = (t_philosopher *)arg;
-	while (1)
+	while (philo->loop_routine)
 	{
 		pthread_mutex_lock(&philo->data->alive_mutex);
 		if (!philo->data->all_alive)
@@ -100,28 +127,12 @@ void	*philosopher_routine(void *arg)
 			break ;
 		}
 		pthread_mutex_unlock(&philo->data->alive_mutex);
-		if (philo->id % 2 == 0)
-		{
-			pthread_mutex_lock(philo->left_fork);
-			print_status(philo, "has taken a fork");
-			pthread_mutex_lock(philo->right_fork);
-			print_status(philo, "has taken a fork");
-		}
-		else
-		{
-			pthread_mutex_lock(philo->right_fork);
-			print_status(philo, "has taken a fork");
-			if (philo->data->number_of_philosophers == 1)
-				break ;
-			pthread_mutex_lock(philo->left_fork);
-			print_status(philo, "has taken a fork");
-		}
+		take_forks(philo);
 		philo->last_meal = get_current_time();
 		print_status(philo, "is eating");
 		philo->meals_eaten++;
+		unlock_forks(philo);
 		usleep(philo->data->time_to_eat * 1000);
-		pthread_mutex_unlock(philo->right_fork);
-		pthread_mutex_unlock(philo->left_fork);
 		if (philo->meals_eaten == philo->data->meals_required)
 			break ;
 		print_status(philo, "is sleeping");
