@@ -6,7 +6,7 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 03:47:58 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/19 09:08:28 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/19 09:16:45 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ int	init_philos(t_data *data)
 	if (!data->philosophers || !data->forks)
 		return (1);
 	pthread_mutex_init(&data->write_mutex, NULL);
+	pthread_mutex_init(&data->alive_mutex, NULL);
 	i = 0;
 	while (i < data->number_of_philosophers)
 		pthread_mutex_init(&data->forks[i++], NULL);
@@ -84,8 +85,13 @@ void	*philosopher_routine(void *arg)
 	philo = (t_philosopher *)arg;
 	while (1)
 	{
+		pthread_mutex_lock(&philo->data->alive_mutex);
 		if (!philo->data->all_alive)
+		{
+			pthread_mutex_unlock(&philo->data->alive_mutex)	;
 			break;
+		}
+		pthread_mutex_unlock(&philo->data->alive_mutex);
 		if (philo->id % 2 == 0)
 		{
 			pthread_mutex_lock(philo->left_fork);
@@ -136,6 +142,7 @@ void	*monitor_die(void *arg)
 		{
 			all_full(data);
 			pthread_mutex_lock(&data->write_mutex);
+			pthread_mutex_lock(&data->alive_mutex);
 			if (!data->philosophers[i].just_full)
 			{
 				time_since_last_meal = get_current_time()
@@ -147,6 +154,7 @@ void	*monitor_die(void *arg)
 						- data->start_time, data->philosophers[i].id);
 				}
 			}
+			pthread_mutex_unlock(&data->alive_mutex);
 			pthread_mutex_unlock(&data->write_mutex);
 			if (!data->all_alive || !data->all_meals)
 				break ;
@@ -192,6 +200,7 @@ void	free_mutex_philos(t_data *data)
 		i++;
 	}
 	pthread_mutex_destroy(&data->write_mutex);
+	pthread_mutex_destroy(&data->alive_mutex);
 	free(data->philosophers);
 	free(data->forks);
 }
