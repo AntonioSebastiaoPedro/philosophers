@@ -6,7 +6,7 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 03:47:58 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/17 20:18:36 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/19 09:02:38 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,6 +95,10 @@ void	*philosopher_routine(void *arg)
 		{
 			pthread_mutex_lock(philo->right_fork);
 			print_status(philo, "has taken a fork");
+			if (philo->data->number_of_philosophers == 1)
+			{
+				break;
+			}
 			pthread_mutex_lock(philo->left_fork);
 			print_status(philo, "has taken a fork");
 		}
@@ -171,6 +175,7 @@ int	simulation(t_data *data)
 	while (i < data->number_of_philosophers)
 		pthread_join(data->philosophers[i++].thread, NULL);
 	pthread_join(monitor_for_die, NULL);
+	pthread_detach(monitor_for_die);
 	return (0);
 }
 
