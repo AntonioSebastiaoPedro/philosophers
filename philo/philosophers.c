@@ -6,7 +6,7 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 03:47:58 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/19 09:02:38 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/19 09:08:28 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,8 +82,10 @@ void	*philosopher_routine(void *arg)
 	t_philosopher	*philo;
 
 	philo = (t_philosopher *)arg;
-	while (philo->data->all_alive)
+	while (1)
 	{
+		if (!philo->data->all_alive)
+			break;
 		if (philo->id % 2 == 0)
 		{
 			pthread_mutex_lock(philo->left_fork);
@@ -175,7 +177,7 @@ int	simulation(t_data *data)
 	while (i < data->number_of_philosophers)
 		pthread_join(data->philosophers[i++].thread, NULL);
 	pthread_join(monitor_for_die, NULL);
-	pthread_detach(monitor_for_die);
+	// pthread_detach(monitor_for_die);
 	return (0);
 }
 
