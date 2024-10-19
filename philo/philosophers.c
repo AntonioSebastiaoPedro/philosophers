@@ -6,7 +6,7 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 03:47:58 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/19 12:09:47 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/19 13:46:18 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,11 +129,27 @@ void	*philosopher_routine(void *arg)
 	return (NULL);
 }
 
+void	check_death(t_data *data, int id)
+{
+	long	time_last_meal;
+	
+	if (!data->philosophers[id].just_full)
+	{
+		time_last_meal = get_current_time()
+			- data->philosophers[id].last_meal;
+		if ((time_last_meal >= data->time_to_die + 5))
+		{
+			data->all_alive = 0;
+			printf("%ld %d died\n", get_current_time()
+				- data->start_time, data->philosophers[id].id);
+		}
+	}
+}
+
 void	*monitor_die(void *arg)
 {
 	t_data	*data;
 	int		i;
-	long	time_since_last_meal;
 
 	data = (t_data *)arg;
 	while (data->all_alive && data->all_meals != 0)
@@ -144,17 +160,7 @@ void	*monitor_die(void *arg)
 			all_full(data);
 			pthread_mutex_lock(&data->write_mutex);
 			pthread_mutex_lock(&data->alive_mutex);
-			if (!data->philosophers[i].just_full)
-			{
-				time_since_last_meal = get_current_time()
-					- data->philosophers[i].last_meal;
-				if ((time_since_last_meal >= data->time_to_die + 5))
-				{
-					data->all_alive = 0;
-					printf("%ld %d died\n", get_current_time()
-						- data->start_time, data->philosophers[i].id);
-				}
-			}
+			check_death(data, i);
 			pthread_mutex_unlock(&data->alive_mutex);
 			pthread_mutex_unlock(&data->write_mutex);
 			if (!data->all_alive || !data->all_meals)
