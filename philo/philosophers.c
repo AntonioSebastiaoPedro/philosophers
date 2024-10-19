@@ -6,7 +6,7 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 03:47:58 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/19 13:52:27 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/19 14:00:54 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,9 +112,7 @@ void	*philosopher_routine(void *arg)
 			pthread_mutex_lock(philo->right_fork);
 			print_status(philo, "has taken a fork");
 			if (philo->data->number_of_philosophers == 1)
-			{
 				break ;
-			}
 			pthread_mutex_lock(philo->left_fork);
 			print_status(philo, "has taken a fork");
 		}
@@ -125,10 +123,7 @@ void	*philosopher_routine(void *arg)
 		pthread_mutex_unlock(philo->right_fork);
 		pthread_mutex_unlock(philo->left_fork);
 		if (philo->meals_eaten == philo->data->meals_required)
-		{
-			philo->just_full = 1;
 			break ;
-		}
 		print_status(philo, "is sleeping");
 		usleep(philo->data->time_to_sleep * 1000);
 		print_status(philo, "is thinking");
