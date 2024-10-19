@@ -6,7 +6,7 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 03:47:58 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/19 13:46:18 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/19 13:52:27 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,25 @@ void	all_full(t_data *data)
 	}
 }
 
+void	fill_philos(t_data *data)
+{
+	int	i;
+
+	i = 0;
+	while (i < data->number_of_philosophers)
+	{
+		data->philosophers[i].id = i + 1;
+		data->philosophers[i].left_fork = &data->forks[i];
+		data->philosophers[i].right_fork = &data->forks[(i + 1)
+			% data->number_of_philosophers];
+		data->philosophers[i].last_meal = get_current_time();
+		data->philosophers[i].meals_eaten = 0;
+		data->philosophers[i].just_full = 0;
+		data->philosophers[i].data = data;
+		i++;
+	}
+}
+
 int	init_philos(t_data *data)
 {
 	int	i;
@@ -44,18 +63,7 @@ int	init_philos(t_data *data)
 	while (i < data->number_of_philosophers)
 		pthread_mutex_init(&data->forks[i++], NULL);
 	i = 0;
-	while (i < data->number_of_philosophers)
-	{
-		data->philosophers[i].id = i + 1;
-		data->philosophers[i].left_fork = &data->forks[i];
-		data->philosophers[i].right_fork = &data->forks[(i + 1)
-			% data->number_of_philosophers];
-		data->philosophers[i].last_meal = get_current_time();
-		data->philosophers[i].meals_eaten = 0;
-		data->philosophers[i].just_full = 0;
-		data->philosophers[i].data = data;
-		i++;
-	}
+	fill_philos(data);
 	return (0);
 }
 
@@ -85,12 +93,11 @@ void	*philosopher_routine(void *arg)
 	philo = (t_philosopher *)arg;
 	while (1)
 	{
-		
 		pthread_mutex_lock(&philo->data->alive_mutex);
 		if (!philo->data->all_alive)
 		{
-			pthread_mutex_unlock(&philo->data->alive_mutex)	;
-			break;
+			pthread_mutex_unlock(&philo->data->alive_mutex);
+			break ;
 		}
 		pthread_mutex_unlock(&philo->data->alive_mutex);
 		if (philo->id % 2 == 0)
@@ -106,7 +113,7 @@ void	*philosopher_routine(void *arg)
 			print_status(philo, "has taken a fork");
 			if (philo->data->number_of_philosophers == 1)
 			{
-				break;
+				break ;
 			}
 			pthread_mutex_lock(philo->left_fork);
 			print_status(philo, "has taken a fork");
@@ -120,7 +127,7 @@ void	*philosopher_routine(void *arg)
 		if (philo->meals_eaten == philo->data->meals_required)
 		{
 			philo->just_full = 1;
-			break;
+			break ;
 		}
 		print_status(philo, "is sleeping");
 		usleep(philo->data->time_to_sleep * 1000);
@@ -132,16 +139,15 @@ void	*philosopher_routine(void *arg)
 void	check_death(t_data *data, int id)
 {
 	long	time_last_meal;
-	
+
 	if (!data->philosophers[id].just_full)
 	{
-		time_last_meal = get_current_time()
-			- data->philosophers[id].last_meal;
+		time_last_meal = get_current_time() - data->philosophers[id].last_meal;
 		if ((time_last_meal >= data->time_to_die + 5))
 		{
 			data->all_alive = 0;
-			printf("%ld %d died\n", get_current_time()
-				- data->start_time, data->philosophers[id].id);
+			printf("%ld %d died\n", get_current_time() - data->start_time,
+				data->philosophers[id].id);
 		}
 	}
 }
