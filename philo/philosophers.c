@@ -6,7 +6,7 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 03:47:58 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/19 09:16:45 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/19 12:09:47 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,7 @@ void	*philosopher_routine(void *arg)
 	philo = (t_philosopher *)arg;
 	while (1)
 	{
+		
 		pthread_mutex_lock(&philo->data->alive_mutex);
 		if (!philo->data->all_alive)
 		{
@@ -135,7 +136,7 @@ void	*monitor_die(void *arg)
 	long	time_since_last_meal;
 
 	data = (t_data *)arg;
-	while (data->all_alive && data->all_meals)
+	while (data->all_alive && data->all_meals != 0)
 	{
 		i = 0;
 		while (i < data->number_of_philosophers)
@@ -185,7 +186,6 @@ int	simulation(t_data *data)
 	while (i < data->number_of_philosophers)
 		pthread_join(data->philosophers[i++].thread, NULL);
 	pthread_join(monitor_for_die, NULL);
-	// pthread_detach(monitor_for_die);
 	return (0);
 }
 
@@ -221,6 +221,7 @@ int	main(int argc, char **argv)
 	data.time_to_eat = atoi(argv[3]);
 	data.time_to_sleep = atoi(argv[4]);
 	data.meals_required = -1;
+	data.all_meals = -1;
 	if (argc == 6)
 	{
 		data.meals_required = atoi(argv[5]);
