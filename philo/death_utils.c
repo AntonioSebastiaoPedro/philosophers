@@ -6,7 +6,7 @@
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 16:38:02 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/21 18:17:36 by ansebast         ###   ########.fr       */
+/*   Updated: 2024/10/21 20:29:11 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ void	check_death(t_data *data, int id)
 	if (!data->philosophers[id].just_full)
 	{
 		time_last_meal = get_current_time() - data->philosophers[id].last_meal;
-		if ((time_last_meal >= data->time_to_die + 5))
+		if ((time_last_meal >= data->time_to_die + 2))
 		{
 			data->all_alive = 0;
 			printf("%ld %d died\n", get_current_time() - data->start_time,
