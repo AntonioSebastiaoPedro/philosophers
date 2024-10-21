@@ -1,18 +1,32 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   utils.c                                            :+:      :+:    :+:   */
+/*   libfunctions.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/14 00:06:15 by ansebast          #+#    #+#             */
-/*   Updated: 2024/10/14 03:44:08 by ansebast         ###   ########.fr       */
+/*   Created: 2024/10/21 13:19:39 by ansebast          #+#    #+#             */
+/*   Updated: 2024/10/21 17:53:55 by ansebast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philosophers.h"
 
-int	ft_atoi(const char *str)
+int	ft_isint(char *str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (!(str[i] >= '0' && str[i] <= '9'))
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+int	ft_atoi(char *str)
 {
 	int	i;
 	int	num;
@@ -27,7 +41,7 @@ int	ft_atoi(const char *str)
 		signal = -1;
 	if (str[i] == '-' || str[i] == '+')
 		i++;
-	while (ft_isdigit(str[i]))
+	while (str[i] >= '0' && str[i] <= '9')
 	{
 		num = num * 10 + str[i] - '0';
 		i++;
