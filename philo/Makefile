@@ -6,14 +6,14 @@
 #    By: ansebast <ansebast@student.42luanda.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/09/04 14:00:18 by ansebast          #+#    #+#              #
-#    Updated: 2024/10/14 03:50:19 by ansebast         ###   ########.fr        #
+#    Updated: 2024/10/21 18:27:11 by ansebast         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = philo
 CFLAGS = -Wall -Werror -Wextra -g
 
-SRC = philosophers.c
+SRC = death_utils.c forks_utils.c libfunctions.c philosophers.c philos_utils.c validations.c status_utils.c
 OBJS = $(SRC:.c=.o)
 
 GREEN = \033[0;32m
